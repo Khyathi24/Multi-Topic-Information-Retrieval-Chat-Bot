@@ -17,7 +17,7 @@
     5. so predict using our model ; chitchat or topic
     6. pass "chitchat" or "topic"
 """
-from main import chitchat_model, sbert_model, stop_words, ps
+from app import chitchat_model, sbert_model, stop_words, ps
 import re
 
 labels = {

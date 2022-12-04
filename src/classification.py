@@ -18,23 +18,23 @@ def identify_the_index(query):
     #pass to the classifier 
     index = check_if_chitchat_reddit(query)
     if index == "chitchat":
-        # response = get_search_results_from_chitchat(query)
-        response = index # for now
+        topic = None
+        response = get_search_results_from_chitchat(query)
     else:
         topic = check_the_topic(query)
         response = get_search_results_from_topic(query, topic)
-        # response = topic # for now
-    return response # this will be a text
+    return topic, response 
 
 
 def get_response(query, topic_list = None):
     if not topic_list:
-        response = identify_the_index(query)
+        topic, response = identify_the_index(query)
         # list of topics []
         # check whether it is a chitchat or topic
     elif topic_list:
         #Assuming there is no chitchat ques
         if len(topic_list) == 1:
+            topic = [topic_list]
             #we can directly search in solr
             response = get_search_results_from_topic(query, topic_list[0])
         else:
@@ -43,12 +43,9 @@ def get_response(query, topic_list = None):
             #classfier -> topic : we can pick it
             # use the method cosine similarities <- 
             topic = check_the_topic(query)
-            print('Topic Found is ~~~ ', topic)
             if topic in topic_list:
                 response = get_search_results_from_topic(query, topic)
-                # response = topic # For now
             else:
                 topic = get_highest_similarity_topic(query, topic_list)
-                # response = get_search_results_from_topic(query, topic)
                 response = get_search_results_from_topic(query, topic)
-    return response
+    return topic, response

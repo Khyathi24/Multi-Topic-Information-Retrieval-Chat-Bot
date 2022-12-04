@@ -20,7 +20,7 @@
 
 #import models
 
-from main import topic_model, sbert_model, stop_words, ps, similarity_data
+from app import topic_model, sbert_model, stop_words, ps, similarity_data
 import re
 from sklearn.metrics.pairwise import cosine_similarity
 
