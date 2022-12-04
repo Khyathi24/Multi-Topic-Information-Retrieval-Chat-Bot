@@ -2,17 +2,20 @@ import json
 import urllib.request
 import urllib
 import re
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+from nltk.corpus import stopwords
+stop_words = set(stopwords.words('english'))
 
 def preprocessing(text_):
     try:
         text_ = text_.lower()
-        # text_ = re.sub('[^A-Za-z0-9 ]+', ' ', text_)
-        text_ = re.sub(r'[^\w\s]', '', text_)
+        text_ = re.sub('[^A-Za-z0-9 ]+', ' ', text_)
         text_ = re.sub('[ +]', ' ', text_).strip()
         terms = []
         for token in text_.split():
-            # if token not in stop_words:              #stopwords
-                terms.append(ps.stem(token.strip()))         # stemmer
+            if token not in stop_words:              #stopwords
+                terms.append(ps.stem(token))         # stemmer
         return ' '.join(terms)
     
     except:
@@ -21,6 +24,7 @@ def preprocessing(text_):
 
 def get_search_results_from_chitchat(query):
     query = preprocessing(query)
+    print(query)
     q='%20'.join(query.split(' '))
     base_url='http://35.226.106.255:8983/solr/ChitchatIndexing/select?indent=true&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~5'
     response = urllib.request.urlopen(base_url)
@@ -37,11 +41,12 @@ def get_search_results_from_chitchat(query):
 def get_search_results_from_topic(query, topic):
     query = preprocessing(query)
     q='%20'.join(query.split(' '))
-    base_url='http://35.226.106.255:8983/solr/RedditIndexer/select?bq=subreddit%3A'+topic+'%5E2&defType=edismax&fl=*%2Cscore&indent=true&wt=json&rows=20&q.op=OR&q=parent_body%3A%22'+q+'%22~20'
+    base_url='http://35.226.106.255:8983/solr/Reddit_Indexing/select?bq=topic%3A'+topic+'%5E2&defType=edismax&fl=*%2Cscore&indent=true&wt=json&rows=20&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~20'
+    print(base_url)
     response = urllib.request.urlopen(base_url)
     docs = json.load(response)['response']['docs']
     if len(docs)==0:
-        base_url='http://35.226.106.255:8983/solr/RedditIndexer/select?bq=subreddit%3A'+topic+'%5E2&defType=edismax&fl=*%2Cscore&indent=true&wt=json&rows=20&q.op=OR&q=parent_body%3A%22'+q+'%22~100'
+        base_url='http://35.226.106.255:8983/solr/Reddit_Indexing/select?bq=topic%3A'+topic+'%5E2&defType=edismax&fl=*%2Cscore&indent=true&wt=json&rows=20&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~20'
         response = urllib.request.urlopen(base_url)
         docs = json.load(response)['response']['docs']
     if docs:
