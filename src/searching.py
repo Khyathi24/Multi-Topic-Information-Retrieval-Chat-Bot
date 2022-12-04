@@ -8,10 +8,13 @@ def get_search_results_from_chitchat(query):
     response = urllib.request.urlopen(base_url)
     docs = json.load(response)['response']['docs']
     if len(docs)==0:
-        base_url='http://35.226.106.255:8983/solr/Chit_Chat_Indexer/select?indent=true&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~5'
+        base_url='http://35.226.106.255:8983/solr/Chit_Chat_Indexer/select?indent=true&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~50'
         response = urllib.request.urlopen(base_url)
         docs = json.load(response)['response']['docs']
-    return str(docs[0]['preprocessed_answer'][0])
+    if docs:
+        return str(docs[0]['preprocessed_answer'])
+    else:
+        return "No proper response found for this query!"
 
 def get_search_results_from_topic(query, topic):
     q='%20'.join(query.split(' '))
