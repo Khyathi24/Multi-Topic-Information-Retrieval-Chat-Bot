@@ -1,55 +1,52 @@
-from flask import Flask, request
-from src import classification 
-import ast
+import streamlit as st
+import streamlit.components.v1 as components
+import pandas as pd
 import pickle
-from flask_cors import CORS
-from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
-from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
 
-stop_words = set(stopwords.words('english'))
-ps = PorterStemmer()
-    
-sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
+st.set_page_config(layout="wide")
+st.header("IR Chatbot")
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/chat/')
-def get_chattext():
-    data = dict(request.args)
-    print(dict(data))
-    # data = request.json
-    query = data.get('query', None)
-    topic = data.get('topic', None)
-    if not query:
-        return "Give Valid Response" 
-    if topic:
-        topic =  ast.literal_eval(topic)
-        result = classification.get_response(query, topic)
-    else:
-        result = classification.get_response(query)
-    return result
-
-"""
-Load chitchat_classifier
-"""
-with open(r"data/chitchat_classifier.pkl", "rb") as f:
-     chitchat_model = pickle.load(f)
-
-"""
-Load topic_classifier
-"""
-with open(r"data/topic_classifier.pkl", "rb") as f:
-     topic_model = pickle.load(f)
-
-"""
-Load sbert model
-"""
-with open(r"data/df_topic_similarity.pkl", "rb") as f:
-     similarity_data = pickle.load(f)
+HtmlFile = open("index.html", 'r', encoding='utf-8')
+source_code = HtmlFile.read() 
+components.html(source_code,height=700)
 
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True, port = 5001)
+with open(r"data/RedditData.pkl", "rb") as f:
+     df = pickle.load(f)
+print(df.shape)
+
+# word cloud
+df_poltics_ques = list(set(list(df[df['topic'] == 'Politics']['Question'])))
+st.session_state['df_poltics_ques'] = df_poltics_ques
+
+df_poltics_ans = list(set(list(df[df['topic'] == 'Politics']['Answer'])))
+st.session_state['df_poltics_ans'] = df_poltics_ans
+
+
+df_health_ques = list(set(list(df[df['topic'] == 'Healthcare']['Question'])))
+st.session_state['df_health_ques'] = df_health_ques
+
+df_health_ans = list(set(list(df[df['topic'] == 'Healthcare']['Answer'])))
+st.session_state['df_health_ans'] = df_health_ans
+
+
+df_edu_ques = list(set(list(df[df['topic'] == 'Education']['Question'])))
+st.session_state['df_edu_ques'] = df_edu_ques
+
+df_edu_ans = list(set(list(df[df['topic'] == 'Education']['Answer'])))
+st.session_state['df_edu_ans'] = df_edu_ans
+
+
+df_env_ques = list(set(list(df[df['topic'] == 'Environment']['Question'])))
+st.session_state['df_env_ques'] = df_env_ques
+
+df_env_ans = list(set(list(df[df['topic'] == 'Environment']['Answer'])))
+st.session_state['df_env_ans'] = df_env_ans
+
+
+df_tech_ques = list(set(list(df[df['topic'] == 'Technology']['Question'])))
+st.session_state['df_tech_ques'] = df_tech_ques
+
+df_tech_ans = list(set(list(df[df['topic'] == 'Technology']['Answer'])))
+st.session_state['df_tech_ans'] = df_tech_ans

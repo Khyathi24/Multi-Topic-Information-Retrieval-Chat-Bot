@@ -17,7 +17,7 @@
     5. so predict using our model ; chitchat or topic
     6. pass "chitchat" or "topic"
 """
-from main import chitchat_model, sbert_model, stop_words, ps
+from app import chitchat_model, sbert_model, stop_words, ps
 import re
 
 labels = {
@@ -28,12 +28,13 @@ labels = {
 def preprocessing(text_):
     try:
         text_ = text_.lower()
-        text_ = re.sub('[^A-Za-z0-9 ]+', ' ', text_)
+        # text_ = re.sub('[^A-Za-z0-9 ]+', ' ', text_)
+        text_ = re.sub(r'[^\w\s]', '', text_)
         text_ = re.sub('[ +]', ' ', text_).strip()
         terms = []
         for token in text_.split():
-            if token not in stop_words:              #stopwords
-                terms.append(ps.stem(token))         # stemmer
+            # if token not in stop_words:              #stopwords
+                terms.append(ps.stem(token.strip()))         # stemmer
         return ' '.join(terms)
     
     except:
