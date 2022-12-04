@@ -22,8 +22,8 @@ def identify_the_index(query):
         response = index # for now
     else:
         topic = check_the_topic(query)
-        # response = get_search_results_from_topic(query, topic)
-        response = topic # for now
+        response = get_search_results_from_topic(query, topic)
+        # response = topic # for now
     return response # this will be a text
 
 
@@ -45,10 +45,10 @@ def get_response(query, topic_list = None):
             topic = check_the_topic(query)
             print('Topic Found is ~~~ ', topic)
             if topic in topic_list:
-                # response = get_search_results_from_topic(query, topic)
-                response = topic # For now
+                response = get_search_results_from_topic(query, topic)
+                # response = topic # For now
             else:
                 topic = get_highest_similarity_topic(query, topic_list)
                 # response = get_search_results_from_topic(query, topic)
-                response = topic # For now
+                response = get_search_results_from_topic(query, topic)
     return response
