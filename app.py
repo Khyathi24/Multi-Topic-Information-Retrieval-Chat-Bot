@@ -42,19 +42,32 @@ def get_chattext():
 Load chitchat_classifier
 """
 with open(r"data/chitchat_classifier.pkl", "rb") as f:
-     chitchat_model = pickle.load(f)
+    chitchat_model = pickle.load(f)
 
 """
 Load topic_classifier
 """
 with open(r"data/topic_classifier.pkl", "rb") as f:
-     topic_model = pickle.load(f)
+    topic_model = pickle.load(f)
 
 """
 Load sbert model
 """
 with open(r"data/df_topic_similarity.pkl", "rb") as f:
-     similarity_data = pickle.load(f)
+    similarity_data = pickle.load(f)
+
+"""
+Load reddit dataset
+"""
+with open(r"data/reddit_final_dataset.pkl", "rb") as f:
+    reddit_data = pickle.load(f)
+
+
+"""
+Load chitchat dataset
+"""
+with open(r"data/chitchat_final_dataset.pkl", "rb") as f:
+    chitchat_data = pickle.load(f)
 
 
 if __name__ == "__main__":

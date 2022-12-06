@@ -1,55 +1,56 @@
 import json
 import urllib.request
 import urllib
-import re
-from nltk.stem import PorterStemmer
-ps = PorterStemmer()
-from nltk.corpus import stopwords
-stop_words = set(stopwords.words('english'))
+from sklearn.metrics.pairwise import cosine_similarity
+from .preprocessing import reddit_preprocessing, chitchat_preprocessing
+from app import reddit_data, chitchat_data, sbert_model
 
-def preprocessing(text_):
-    try:
-        text_ = text_.lower()
-        text_ = re.sub('[^A-Za-z0-9 ]+', ' ', text_)
-        text_ = re.sub('[ +]', ' ', text_).strip()
-        terms = []
-        for token in text_.split():
-            if token not in stop_words:              #stopwords
-                terms.append(ps.stem(token))         # stemmer
-        return ' '.join(terms)
-    
-    except:
-        return text_
+def get_cosine_similary(a, b):
+    return cosine_similarity(a,b)
 
+def get_ranked_doc_chitchat_data(data, preprocessed_query):
+    query_emedding = sbert_model.encode([preprocessed_query])
+
+    responses = {}
+    for value in data:
+        print(value['index'],  value['preprocessed_question'], value['answer'], value['preprocessed_answer'] )
+        val = get_cosine_similary(chitchat_data.iloc[value['index'][0]-1]['pre_ques_embeddings'], query_emedding)
+        responses[value['answer'][0]] = float(val)
+    responses = sorted(responses.items(), key=lambda x: x[1], reverse=True)
+    print(responses)
+    if len(responses) > 1:
+        return responses[0][0]
+    else:
+        return "No proper response found for this query!"
+
+def get_ranked_doc_reddit_data(data, preprocessed_query):
+    query_emedding = sbert_model.encode([preprocessed_query])
+
+    responses = {}
+    for value in data:
+        print(value['index'],  value['preprocessed_question'], value['Answer'], value['preprocessed_answer'] )
+        val = get_cosine_similary(reddit_data.iloc[value['index'][0]-1]['pre_ques_embeddings'], query_emedding)
+        responses[value['Answer'][0]] = float(val)
+    responses = sorted(responses.items(), key=lambda x: x[1], reverse=True)
+    print(responses)
+    if len(responses) > 1:
+        return responses[0][0]
+    else:
+        return "No proper response found for this query!"
 
 def get_search_results_from_chitchat(query):
-    query = preprocessing(query)
-    print(query)
+    query = chitchat_preprocessing(query)
     q='%20'.join(query.split(' '))
-    base_url='http://35.226.106.255:8983/solr/ChitchatIndexing/select?indent=true&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~5'
+    base_url='http://34.125.44.135:8983/solr/ChitChatIndexer/select?indent=true&q.op=OR&q=preprocessed_question%3A'+q
     response = urllib.request.urlopen(base_url)
     docs = json.load(response)['response']['docs']
-    if len(docs)==0:
-        base_url='http://35.226.106.255:8983/solr/ChitchatIndexing/select?indent=true&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~50'
-        response = urllib.request.urlopen(base_url)
-        docs = json.load(response)['response']['docs']
-    if docs:
-        return str(docs[0]['Answer'])
-    else:
-        return "No proper response found for this query!"
+    return get_ranked_doc_chitchat_data(docs, query)
 
 def get_search_results_from_topic(query, topic):
-    query = preprocessing(query)
+    query = reddit_preprocessing(query)
     q='%20'.join(query.split(' '))
-    base_url='http://35.226.106.255:8983/solr/Reddit_Indexing/select?bq=topic%3A'+topic+'%5E2&defType=edismax&fl=*%2Cscore&indent=true&wt=json&rows=20&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~20'
-    print(base_url)
+    topic=topic.capitalize()
+    base_url = 'http://34.125.44.135:8983/solr/RedditIndexer/select?facet.field=topic&facet=true&fq=topic%3A'+topic+'&indent=true&q.op=OR&q=preprocessed_question%3A'+q    
     response = urllib.request.urlopen(base_url)
     docs = json.load(response)['response']['docs']
-    if len(docs)==0:
-        base_url='http://35.226.106.255:8983/solr/Reddit_Indexing/select?bq=topic%3A'+topic+'%5E2&defType=edismax&fl=*%2Cscore&indent=true&wt=json&rows=20&q.op=OR&q=preprocessed_question%3A%22'+q+'%22~20'
-        response = urllib.request.urlopen(base_url)
-        docs = json.load(response)['response']['docs']
-    if docs:
-        return str(docs[0]['final_body'][0])
-    else:
-        return "No proper response found for this query!"
+    return get_ranked_doc_reddit_data(docs, query)

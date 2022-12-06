@@ -20,9 +20,10 @@
 
 #import models
 
-from app import topic_model, sbert_model, stop_words, ps, similarity_data
-import re
+from app import topic_model, sbert_model, similarity_data
+from .preprocessing import reddit_preprocessing
 from sklearn.metrics.pairwise import cosine_similarity
+
 
 
 labels = {
@@ -33,21 +34,6 @@ labels = {
     4 : 'technology'
 }
 
-def preprocessing(text_):
-    try:
-        text_ = text_.lower()
-        # text_ = re.sub('[^A-Za-z0-9 ]+', ' ', text_)
-        text_ = re.sub(r'[^\w\s]', '', text_)
-        text_ = re.sub('[ +]', ' ', text_).strip()
-        terms = []
-        for token in text_.split():
-            # if token not in stop_words:              #stopwords
-                terms.append(ps.stem(token.strip()))         # stemmer
-        return ' '.join(terms)
-    
-    except:
-        return text_
-
 def get_the_embeddings(preprocessed_query):
     Xtest = sbert_model.encode(preprocessed_query)
     return Xtest
@@ -57,7 +43,7 @@ def get_the_prediction(Xtest):
     return labels[ypred_[0]]
 
 def check_the_topic(query):
-    preprocessed_query = preprocessing(query)
+    preprocessed_query = reddit_preprocessing(query)
     xtest = get_the_embeddings(preprocessed_query)
     return get_the_prediction(xtest)
 
@@ -81,6 +67,6 @@ def get_topic_based_similarity(query_emedding):
     return desired_topic
 
 def get_highest_similarity_topic(query, topic_list):
-    preprocessed_query = preprocessing(query)
+    preprocessed_query = reddit_preprocessing(query)
     query_emedding = get_the_embeddings(preprocessed_query)
     return get_topic_based_similarity(query_emedding)
